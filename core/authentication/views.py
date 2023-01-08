@@ -4,6 +4,11 @@ from django.conf import settings
 from django.shortcuts import redirect, render, redirect
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from core.authentication.permissions import HasAdminPermission
+# from messages_api.models import Message
+# from messages_api.serializers import MessageSerializer
 
 # Create your views here.
 oauth = OAuth()
@@ -19,6 +24,28 @@ oauth.register(
 )
 
 
+# class MessageApiView(RetrieveAPIView):
+#     serializer_class = MessageSerializer
+#     text = None
+
+#     def get_object(self):
+#         return Message(text=self.text)
+
+
+# class PublicMessageApiView(MessageApiView):
+#     text = "This is a public message."
+
+
+# class ProtectedMessageApiView(MessageApiView):
+#     text = "This is a protected message."
+#     permission_classes = [IsAuthenticated]
+
+
+# class AdminMessageApiView(MessageApiView):
+#     text = "This is an admin message."
+#     permission_classes = [IsAuthenticated, HasAdminPermission]
+
+@permission_classes([IsAuthenticated])
 def index(request):
     return render(
         request,

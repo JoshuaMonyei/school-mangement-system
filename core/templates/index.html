@@ -6,11 +6,11 @@
   <body>
     {% if session %}
     <h1>Welcome {{session.userinfo.name}}!</h1>
-    <p><a href="{% url 'authentication:logout' %}" id="qsLogoutBtn">Logout</a></p>
+    <p><a href="{% url 'core:authentication:logout' %}" id="qsLogoutBtn">Logout</a></p>
     <div><pre>{{pretty}}</pre></div>
     {% else %}
     <h1 id="profileDropDown">Welcome Guest</h1>
-    <p><a href="{% url 'authentication:login' %}" id="qsLoginBtn">Login</a></p>
+    <p><a href="{% url 'core:authentication:login' %}" id="qsLoginBtn">Login</a></p>
     {% endif %}
   </body>
 </html>
