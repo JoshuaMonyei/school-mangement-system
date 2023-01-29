@@ -56,7 +56,7 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     # This should potentially be an encrypted field
     jwt_key = models.UUIDField(default=uuid.uuid4)
     user_type_data = ((1, "HOD"), (2, "Staff"), (3, "Student"))
-    user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
+    user_type = models.IntegerField(default=1, choices=user_type_data)
 
     objects = BaseUserManager()
 

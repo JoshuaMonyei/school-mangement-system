@@ -65,56 +65,82 @@ from core.users.models import BaseUser
 #         return self.is_admin
 
 
-class AdminHOD(BaseModel, models.Model):
-    admin = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
+class Department(BaseModel, models.Model):
+    department_name = models.CharField(max_length=255)
     objects = models.Manager()
 
 
-class Staffs(BaseModel, models.Model):
-    admin = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
+class User(BaseModel, models.Model):
+    # admin = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
+    auth0_user_id = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=40)
+    last_name = models.CharField(max_length=40)
+    gender = models.CharField(max_length=255)
+    department_id = models.ForeignKey(Department, on_delete=models.DO_NOTHING, related_name="department")
+    profile_pic = models.CharField(max_length=300)
+    address = models.TextField()
+    session_start_year = models.DateField(auto_now=True)
+    session_end_year = models.DateField(null=True, blank=True)
+    user_type_data = ((3, "HOD"), (2, "staff"), (1, "student"))
+    role = models.IntegerField(default=1, choices=user_type_data)
+    objects = models.Manager()
+
+
+class AdminHOD(BaseModel, models.Model):
+    admin = models.OneToOneField(User, on_delete=models.CASCADE)
+    objects = models.Manager()
+
+
+class Staff(BaseModel, models.Model):
+    admin = models.OneToOneField(User, on_delete=models.CASCADE)
     address = models.TextField()
     objects = models.Manager()
 
 
-class Courses(BaseModel, models.Model):
-    course_name = models.CharField(max_length=255)
-    objects = models.Manager()
-    
-
-
-class Subjects(BaseModel, models.Model):
+class Subject(BaseModel, models.Model):
     subject_name = models.CharField(max_length=255)
-    course_id = models.ForeignKey(Courses, on_delete=models.CASCADE, default=1)
-    staff_id = models.ForeignKey(BaseUser, on_delete=models.CASCADE)
-    objects = models.Manager()
+    department_id = models.ForeignKey(Department, on_delete=models.CASCADE, default=1)
+    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.subject_name
 
 
-class Students(BaseModel, models.Model):
-    admin = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
+class Student(BaseModel, models.Model):
+    admin = models.OneToOneField(User, on_delete=models.CASCADE)
     gender = models.CharField(max_length=255)
     profile_pic = models.FileField()
     address = models.TextField()
-    course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING)
+    department_id = models.ForeignKey(Department, on_delete=models.DO_NOTHING)
     session_start_year = models.DateField()
     session_end_year = models.DateField()
     objects = models.Manager()
 
 
+class CourseRegistration(BaseModel, models.Model):
+    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    session_start_year = models.IntegerField()
+    session_end_year = models.IntegerField()
+    department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
+    courses = models.ManyToManyField(Subject, related_name="courses")
+    objects = models.Manager()
+
+
 class Attendance(BaseModel, models.Model):
-    subject_id = models.ForeignKey(Subjects, on_delete=models.DO_NOTHING)
+    subject_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     attendance_date = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
 
 class AttendanceReport(BaseModel, models.Model):
-    student_id = models.ForeignKey(Students, on_delete=models.DO_NOTHING)
+    student_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     attendance_id = models.ForeignKey(Attendance, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     objects = models.Manager()
 
 
 class LeaveReportStudent(BaseModel, models.Model):
-    student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
+    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
     leave_date = models.CharField(max_length=255)
     leave_message = models.TextField()
     leave_status = models.BooleanField(default=False)
@@ -122,7 +148,7 @@ class LeaveReportStudent(BaseModel, models.Model):
 
 
 class LeaveReportStaff(BaseModel, models.Model):
-    staff_id = models.ForeignKey(Staffs, on_delete=models.CASCADE)
+    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
     leave_date = models.CharField(max_length=255)
     leave_message = models.TextField()
     leave_status = models.BooleanField(default=False)
@@ -130,55 +156,26 @@ class LeaveReportStaff(BaseModel, models.Model):
 
 
 class FeedBackStudent(BaseModel, models.Model):
-    student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
+    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
     feedback = models.TextField()
     feedback_reply = models.TextField()
     objects = models.Manager()
 
 
-class FeedBackStaffs(BaseModel, models.Model):
-    staff_id = models.ForeignKey(Staffs, on_delete=models.CASCADE)
+class FeedBackStaff(BaseModel, models.Model):
+    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
     feedback = models.TextField()
     feedback_reply = models.TextField()
     objects = models.Manager()
 
 
 class NotificationStudent(BaseModel, models.Model):
-    student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
+    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
     objects = models.Manager()
 
 
-class NotificationStaffs(BaseModel, models.Model):
-    staff_id = models.ForeignKey(Staffs, on_delete=models.CASCADE)
+class NotificationStaff(BaseModel, models.Model):
+    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
     objects = models.Manager()
-
-
-@receiver(post_save, sender=BaseUser)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        if instance.user_type == 1:
-            AdminHOD.objects.create(admin=instance)
-        if instance.user_type == 2:
-            Staffs.objects.create(admin=instance, address="")
-        if instance.user_type == 3:
-            Students.objects.create(
-                admin=instance,
-                course_id=Courses.objects.get(id=1),
-                session_start_year="2020-01-01",
-                session_end_year="2021-01-01",
-                address="",
-                profile_pic="",
-                gender="",
-            )
-
-
-@receiver(post_save, sender=BaseUser)
-def save_user_profile(sender, instance, **kwargs):
-    if instance.user_type == 1:
-        instance.adminhod.save()
-    if instance.user_type == 2:
-        instance.staffs.save()
-    if instance.user_type == 3:
-        instance.students.save()

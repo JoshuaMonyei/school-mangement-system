@@ -50,7 +50,10 @@ THIRD_PARTY_APPS = [
     "rest_framework_jwt",
     "django_celery_results",
     "django_celery_beat",
+    "corsheaders",
 ]
+
+CORS_ORIGIN_ALLOW_ALL=True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -64,6 +67,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -71,6 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -147,7 +152,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.api.exception_handlers.drf_default_with_modifications_exception_handler",
-    # 'EXCEPTION_HANDLER': 'styleguide_example.api.exception_handlers.hacksoft_proposed_exception_handler',
+    # "EXCEPTION_HANDLER": "core.api.exception_handlers.hacksoft_proposed_exception_handler",
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',

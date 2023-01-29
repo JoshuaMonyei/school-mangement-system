@@ -1,49 +1,37 @@
-import datetime
-
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
-from django.urls import reverse
-
-import school_management.email_backend as EmailBackEnd
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from rest_framework import generics
+from school_management.models import User, Staff, Department, Subject, Student
+from school_management.api.serializers import UserSerializer
+from core.users.models import BaseUser
 
 
-def show_demo_page(request):
-    return render(request, "demo.html")
+class UserCreate(generics.CreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return User.objects.all()
 
-def show_login_page(request):
-    return render(request, "login_page.html")
+    def perform_create(self, serializer):
+        # get user id from the request
+        user_id = self.request.data["id"]
+        auth0_user_id = self.request.data["auth0_user_id"]
 
+        user_queryset = User.objects.filter(auth0_user_id=auth0_user_id)
 
-def do_login(request):
-    if request.method != "POST":
-        return HttpResponse("<h2>Method Not Allowed</h2>")
-    else:
-        user = EmailBackEnd.authenticate(
-            request, username=request.POST.get("email"), password=request.POST.get("password")
-        )
-        if user != None:
-            login(request, user)
-            if user.user_type == "1":
-                return HttpResponseRedirect("/admin_home")
-            elif user.user_type == "2":
-                return HttpResponseRedirect(reverse("staff_home"))
-            else:
-                return HttpResponseRedirect(reverse("student_home"))
+        if user_queryset.exists():
+            raise ValidationError("User already exists")
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
         else:
-            messages.error(request, "Invalid Login Details")
-            return HttpResponseRedirect("/")
+            return Response(serializer.errors)
 
 
-def get_user_details(request):
-    if request.user != None:
-        return HttpResponse("User : " + request.user.email + " usertype : " + str(request.user.user_type))
-    else:
-        return HttpResponse("Please Login First")
-
-
-def logout_user(request):
-    logout(request)
-    return HttpResponseRedirect("/")
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
