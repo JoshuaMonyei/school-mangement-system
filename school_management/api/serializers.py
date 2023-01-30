@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from school_management.models import User, Department, CourseRegistration
+from school_management.models import User, Department, Subject, CourseRegistration
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,6 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
+        fields = "__all__"
+        
+class SubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
         fields = "__all__"
         
 class CourseRegistrationSerializer(serializers.ModelSerializer):

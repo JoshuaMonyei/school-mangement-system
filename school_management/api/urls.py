@@ -12,6 +12,7 @@ urlpatterns = [
     path("get-user/<str:pk>", views.UserDetail.as_view(), name="get-user"),
     path("get-departments", StudentViews.ListDepartment.as_view(), name="get-departments"),
     path("get-department/<str:pk>", StudentViews.DepartmentDetail.as_view(), name="get-department"),
+    path("get-subjects/<str:department_id>", StudentViews.SubjectDetail.as_view(), name="get-subjects"),
     path("register-course", StudentViews.CourseRegistrationView.as_view(), name="register-course"),
     #     Staff URL Path
     path("staff_home", StaffViews.staff_home, name="staff_home"),

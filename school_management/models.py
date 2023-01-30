@@ -1,88 +1,68 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from core.common.models import BaseModel
 from core.users.models import BaseUser
-
-
-# class CustomUserManager(BUM):
-#     def create_user(self, email, is_active=True, is_admin=False, password=None):
-#         if not email:
-#             raise ValueError("Users must have an email address")
-
-#         user = self.model(email=self.normalize_email(email.lower()), is_active=is_active, is_admin=is_admin)
-
-#         if password is not None:
-#             user.set_password(password)
-#         else:
-#             user.set_unusable_password()
-
-#         user.full_clean()
-#         user.save(using=self._db)
-
-#         return user
-
-#     def create_superuser(self, email, password=None):
-#         user = self.create_user(
-#             email=email,
-#             is_active=True,
-#             is_admin=True,
-#             password=password,
-#         )
-
-#         user.is_superuser = True
-#         user.save(using=self._db)
-
-#         return user
-
-
-# class CustomUser(BaseModel, AbstractBaseUser, PermissionsMixin):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4().hex, editable=False)
-#     email = models.EmailField(
-#         verbose_name="email address",
-#         max_length=255,
-#         unique=True,
-#     )
-
-#     is_active = models.BooleanField(default=True)
-#     is_admin = models.BooleanField(default=False)
-
-#     # This should potentially be an encrypted field
-#     jwt_key = models.UUIDField(default=uuid.uuid4)
-#     user_type_data = ((1, "HOD"), (2, "Staff"), (3, "Student"))
-#     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
-
-#     objects = CustomUserManager()
-
-#     USERNAME_FIELD = "email"
-
-#     def __str__(self):
-#         return self.email
-
-#     def is_staff(self):
-#         return self.is_admin
 
 
 class Department(BaseModel, models.Model):
     department_name = models.CharField(max_length=255)
     objects = models.Manager()
 
+    def __str__(self):
+        return self.department_name
+
 
 class User(BaseModel, models.Model):
-    # admin = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
     auth0_user_id = models.CharField(max_length=255)
     first_name = models.CharField(max_length=40)
     last_name = models.CharField(max_length=40)
     gender = models.CharField(max_length=255)
     department_id = models.ForeignKey(Department, on_delete=models.DO_NOTHING, related_name="department")
     profile_pic = models.CharField(max_length=300)
+    phone_number = models.CharField(max_length=255)
     address = models.TextField()
+    email = models.EmailField(max_length=255)
+    campus = models.CharField(max_length=255)
     session_start_year = models.DateField(auto_now=True)
     session_end_year = models.DateField(null=True, blank=True)
     user_type_data = ((3, "HOD"), (2, "staff"), (1, "student"))
-    role = models.IntegerField(default=1, choices=user_type_data)
+    role = models.IntegerField(choices=user_type_data)
+    objects = models.Manager()
+
+    def __str__(self):
+        return self.first_name + " " + self.last_name
+
+
+class Subject(BaseModel, models.Model):
+    subject_name = models.CharField(max_length=255)
+    department_id = models.ForeignKey(Department, on_delete=models.CASCADE, default=1)
+    class_grade_type = (
+        ("freshman", "freshman"),
+        ("sophomore", "sophomore"),
+        ("junior", "junior"),
+        ("senior", "senior"),
+    )
+    class_grade = models.CharField(max_length=255, default="freshman", choices=class_grade_type)
+    course_data_type = (
+        ("core", "core"),
+        ("elective", "elective"),
+    )
+    course_type = models.CharField(max_length=255, default="core", choices=course_data_type)
+    credit_unit = models.IntegerField(default=2)
+    course_code = models.CharField(max_length=255)
+    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.subject_name
+
+
+class CourseRegistration(BaseModel, models.Model):
+    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    session_start_year = models.IntegerField()
+    session_end_year = models.IntegerField()
+    department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
+    courses = models.ManyToManyField(Subject, related_name="courses")
     objects = models.Manager()
 
 
@@ -97,15 +77,6 @@ class Staff(BaseModel, models.Model):
     objects = models.Manager()
 
 
-class Subject(BaseModel, models.Model):
-    subject_name = models.CharField(max_length=255)
-    department_id = models.ForeignKey(Department, on_delete=models.CASCADE, default=1)
-    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.subject_name
-
-
 class Student(BaseModel, models.Model):
     admin = models.OneToOneField(User, on_delete=models.CASCADE)
     gender = models.CharField(max_length=255)
@@ -114,15 +85,6 @@ class Student(BaseModel, models.Model):
     department_id = models.ForeignKey(Department, on_delete=models.DO_NOTHING)
     session_start_year = models.DateField()
     session_end_year = models.DateField()
-    objects = models.Manager()
-
-
-class CourseRegistration(BaseModel, models.Model):
-    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    session_start_year = models.IntegerField()
-    session_end_year = models.IntegerField()
-    department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
-    courses = models.ManyToManyField(Subject, related_name="courses")
     objects = models.Manager()
 
 

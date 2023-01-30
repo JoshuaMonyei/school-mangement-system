@@ -4,7 +4,12 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import CourseRegistration, Subject, User, Department
-from school_management.api.serializers import UserSerializer, DepartmentSerializer, CourseRegistrationSerializer
+from school_management.api.serializers import (
+    UserSerializer,
+    DepartmentSerializer,
+    SubjectSerializer,
+    CourseRegistrationSerializer,
+)
 
 
 class ListDepartment(generics.ListAPIView):
@@ -18,8 +23,18 @@ class DepartmentDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
 
+class SubjectDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, department_id):
+        print("data", department_id)
+        subjects = Subject.objects.filter(department_id=department_id)
+        serializer = SubjectSerializer(subjects, many=True, context={"request": request})
+        return Response({"status": "success", "subjects": serializer.data})
+
+
 class CourseRegistrationView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         data = request.data
