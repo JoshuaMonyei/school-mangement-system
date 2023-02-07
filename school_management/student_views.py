@@ -27,7 +27,6 @@ class SubjectDetail(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, department_id):
-        print("data", department_id)
         subjects = Subject.objects.filter(department_id=department_id)
         serializer = SubjectSerializer(subjects, many=True, context={"request": request})
         return Response({"status": "success", "subjects": serializer.data})

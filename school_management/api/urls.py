@@ -10,6 +10,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("signup", views.UserCreate.as_view(), name="signup"),
     path("get-user/<str:pk>", views.UserDetail.as_view(), name="get-user"),
+    path("update-profile", views.UpdateUser.as_view(), name="update-user"),
+    path("update-profile-picture", views.UpdateProfilePicture.as_view(), name="update-profile-picture"),
     path("get-departments", StudentViews.ListDepartment.as_view(), name="get-departments"),
     path("get-department/<str:pk>", StudentViews.DepartmentDetail.as_view(), name="get-department"),
     path("get-subjects/<str:department_id>", StudentViews.SubjectDetail.as_view(), name="get-subjects"),
