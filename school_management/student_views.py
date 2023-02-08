@@ -2,7 +2,7 @@ import json
 from django.conf import settings
 import stripe
 from rest_framework.views import APIView
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import CourseRegistration, Subject, User, Department
@@ -14,6 +14,7 @@ from school_management.api.serializers import (
 )
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 class ListDepartment(generics.ListAPIView):
     queryset = Department.objects.all()
@@ -53,7 +54,10 @@ class CourseRegistrationView(APIView):
         if CourseRegistration.objects.filter(
             student_id=user, session_start_year=session_start_year, session_end_year=session_end_year
         ).exists():
-            return Response({"status": "error", "message": "Course registration already exists for this session"})
+            return Response(
+                {"status": "error", "message": "Course registration already exists for this session"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         course_registration = CourseRegistration.objects.create(
             student_id=user,
@@ -66,6 +70,14 @@ class CourseRegistrationView(APIView):
 
         return Response({"status": "success"})
 
+
+class CourseRegistrationDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, student_id):
+        course_registrations = CourseRegistration.objects.filter(student_id=student_id)
+        serializer = CourseRegistrationSerializer(course_registrations, many=True, context={"request": request})
+        return Response({"status": "success", "course_registrations": serializer.data})
 
 class TuitionPaymentIntent(APIView):
     permission_classes = [IsAuthenticated]
@@ -85,5 +97,3 @@ class TuitionPaymentIntent(APIView):
             return Response({"clientSecret": intent["client_secret"]})
         except Exception as e:
             return Response({"status": "error", "message": str(e)})
-        
-
