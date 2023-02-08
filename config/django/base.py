@@ -19,7 +19,7 @@ env.read_env(os.path.join(BASE_DIR, ".env"))
 # BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = os.path.join(BASE_DIR, "core", "templates")
 BASE_URL = 'http://localhost:6060/'
-STRIPE_SECRET_KEY = "sk_test_51MYpNNEOAtI1f4BNSQOYWgv1R40fYHfGXNwKeUIg15z2qofdcrEcny41mHqEO7OnIYaXay3WNIsTFUbXFYJLIo8Z00wzYuByuG"
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
 
 
 # Quick-start development settings - unsuitable for production
