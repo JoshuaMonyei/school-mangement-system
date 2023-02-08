@@ -16,6 +16,7 @@ urlpatterns = [
     path("get-department/<str:pk>", StudentViews.DepartmentDetail.as_view(), name="get-department"),
     path("get-subjects/<str:department_id>", StudentViews.SubjectDetail.as_view(), name="get-subjects"),
     path("register-course", StudentViews.CourseRegistrationView.as_view(), name="register-course"),
+    path("create-payment-intent", StudentViews.TuitionPaymentIntent.as_view(), name="create-payment-intent"),
     #     Staff URL Path
     path("staff_home", StaffViews.staff_home, name="staff_home"),
 ]

@@ -1,4 +1,6 @@
 import json
+from django.conf import settings
+import stripe
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
@@ -11,6 +13,7 @@ from school_management.api.serializers import (
     CourseRegistrationSerializer,
 )
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class ListDepartment(generics.ListAPIView):
     queryset = Department.objects.all()
@@ -62,3 +65,25 @@ class CourseRegistrationView(APIView):
         course_registration.save()
 
         return Response({"status": "success"})
+
+
+class TuitionPaymentIntent(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            data = request.data
+            amount = data.get("amount")
+            # Create a PaymentIntent with the order amount and currency
+            intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency="usd",
+                automatic_payment_methods={
+                    "enabled": True,
+                },
+            )
+            return Response({"clientSecret": intent["client_secret"]})
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)})
+        
+

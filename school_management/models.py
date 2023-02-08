@@ -28,6 +28,7 @@ class User(BaseModel, models.Model):
     session_end_year = models.DateField(null=True, blank=True)
     user_type_data = ((3, "HOD"), (2, "staff"), (1, "student"))
     role = models.IntegerField(choices=user_type_data)
+    tuitionPaid = models.BooleanField(default=False)
     objects = models.Manager()
 
     def __str__(self):
@@ -87,57 +88,3 @@ class Student(BaseModel, models.Model):
     session_end_year = models.DateField()
     objects = models.Manager()
 
-
-class Attendance(BaseModel, models.Model):
-    subject_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    attendance_date = models.DateTimeField(auto_now_add=True)
-    objects = models.Manager()
-
-
-class AttendanceReport(BaseModel, models.Model):
-    student_id = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    attendance_id = models.ForeignKey(Attendance, on_delete=models.CASCADE)
-    status = models.BooleanField(default=False)
-    objects = models.Manager()
-
-
-class LeaveReportStudent(BaseModel, models.Model):
-    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    leave_date = models.CharField(max_length=255)
-    leave_message = models.TextField()
-    leave_status = models.BooleanField(default=False)
-    objects = models.Manager()
-
-
-class LeaveReportStaff(BaseModel, models.Model):
-    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    leave_date = models.CharField(max_length=255)
-    leave_message = models.TextField()
-    leave_status = models.BooleanField(default=False)
-    objects = models.Manager()
-
-
-class FeedBackStudent(BaseModel, models.Model):
-    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    feedback = models.TextField()
-    feedback_reply = models.TextField()
-    objects = models.Manager()
-
-
-class FeedBackStaff(BaseModel, models.Model):
-    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    feedback = models.TextField()
-    feedback_reply = models.TextField()
-    objects = models.Manager()
-
-
-class NotificationStudent(BaseModel, models.Model):
-    student_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    message = models.TextField()
-    objects = models.Manager()
-
-
-class NotificationStaff(BaseModel, models.Model):
-    staff_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    message = models.TextField()
-    objects = models.Manager()
